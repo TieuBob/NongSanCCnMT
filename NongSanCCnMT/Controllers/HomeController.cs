@@ -8,23 +8,66 @@ namespace NongSanCCnMT.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        dbNongSanZenoDataContext data = new dbNongSanZenoDataContext();
+
+        private List<tbSanPham> Laysanpham(int count)
+        {
+            return data.tbSanPhams.OrderByDescending(a => a.NgayCapNhat).Take(count).ToList();
+        }
+        public ActionResult TrangChu()
+        {
+            //Lay top  san pham 
+            var sanpham = Laysanpham(42);
+            sanpham = data.tbSanPhams.OrderByDescending(a => a.NgayCapNhat).Take(42).Where(w => w.TenSP).ToList();
+            return View(sanpham);
+        }
+
+        public ActionResult GioiThieu()
         {
             return View();
         }
 
-        public ActionResult About()
+        public ActionResult TinTuc()
         {
-            ViewBag.Message = "Your application description page.";
-
             return View();
         }
 
-        public ActionResult Contact()
+        public ActionResult AnToanThucPham()
         {
-            ViewBag.Message = "Your contact page.";
-
             return View();
+        }
+
+        [HttpGet]
+        public ActionResult LienHe()
+        {
+            return View();
+        }
+        [HttpPost]
+        public ActionResult LienHe(FormCollection collection)
+        {
+            if (Session["Taikhoan"] == null || Session["Taikhoan"].ToString() == "")
+            {
+                return RedirectToAction("Dangnhap", "LoginUser");
+            }
+            else
+            {
+                tbPhanHoiKH ht = new tbPhanHoiKH();
+                tbKhachHang kh = (tbKhachHang)Session["Taikhoan"];
+                ht.MaKH = kh.MaKH;
+                ht.Email = kh.Email;
+                string lydo = collection["LyDo"];
+                ht.LyDo = lydo;
+                if (lydo == null)
+                {
+                    return HttpNotFound();
+                }
+                else
+                {
+                    data.tbPhanHoiKHs.InsertOnSubmit(ht);
+                    data.SubmitChanges();
+                    return RedirectToAction("LienHe", "Home");
+                }
+            }
         }
     }
 }
